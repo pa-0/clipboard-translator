@@ -1,0 +1,38 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      working-directory: src
+      run: cargo build --verbose
+    - name: Run tests
+      working-directory: src
+      run: cargo test --verbose
+    - name: Zip result
+      uses: vimtor/action-zip@v1
+      with:
+          files: target/debug/clipboard_translator.pdb target/debug/clipboard-translator.d target/debug/clipboard-translator.exe
+          dest: clipboard-translator.zip
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{ github.workspace }}/clipboard-translator.zip
+        asset_name: clipboard-translator.zip
+        tag: Latest
+        overwrite: true
+        body: "windows release"
